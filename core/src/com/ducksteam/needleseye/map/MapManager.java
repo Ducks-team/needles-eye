@@ -230,12 +230,16 @@ public class MapManager {
                         for (int j = 4; j < 7; j++) {
                             if (adjacentRoomDoor != -1) break; // -1 means no door found yet
                             HallwayPlaceholderRoom placeholderRoom = (HallwayPlaceholderRoom) adjacentRoom;
+
                             RoomInstance associatedRoom = placeholderRoom.getAssociatedRoom();
+
                             if (associatedRoom == null) {
                                 Gdx.app.error("MapManager", "Associated room not found");
                                 return;
                             }
+
                             Vector2 adjacentRoomDoorPosition = associatedRoom.getCentreRoomSpacePos().add(roomSpaceDoorTransformations[j].cpy().rotateDeg(adjacentRoom.getRot()));
+
                             if (adjacentRoomDoorPosition.epsilonEquals(currentRoomDoorPosition, 0.25f)) {
                                 adjacentRoomDoor = j;
                                 adjacentRoomDoorEnabled = associatedRoom.getRoom().getDoors().get(adjacentRoomDoor);
@@ -331,6 +335,8 @@ public class MapManager {
         int door = (int) Math.floor(Math.random() * doorCount);
         while ((doorCount == 7 && door == 3) || !room.getRoom().getDoors().get(door)) door = (int) Math.floor(Math.random() * doorCount); // but door 3 isn't used in hallways and doors can be disabled
 
+        if (!room.getRoom().getDoors().get(door)) return generateRoomPos(template, rooms, rot); // if the pre-existing room's door is disabled try again
+
         // Door id reference
         /*   6
          *   __
@@ -348,10 +354,24 @@ public class MapManager {
             case 90 -> new Vector2(1, -1);
             case 180 -> new Vector2(-1, -1);
             case 270 -> new Vector2(-1, 1);
-            default -> throw new IllegalStateException("Unexpected value: " + room.getRot());
+            default -> throw new IllegalStateException("Unexpected rotation value: " + room.getRot());
         };
 
         Vector2 pos = room.getRoomSpacePos().cpy().add(offset.scl(adjacentRoomOffset)); // add offset to room position
+        Vector2 currentRoomDoorPosition = room.getRoomSpacePos().cpy().add(roomSpaceDoorTransformations[door].cpy().rotateDeg(room.getRot()));
+
+        int adjacentRoomDoor = -1;
+
+        for (int j = 0; j < 4; j++) {
+            if (adjacentRoomDoor != -1) break;
+            Vector2 adjacentRoomDoorPosition = pos.cpy().sub(0.5f, 0.5f).add(roomSpaceDoorTransformations[j].cpy().rotateDeg(rot));
+            if (adjacentRoomDoorPosition.epsilonEquals(currentRoomDoorPosition, 0.25f)) {
+                adjacentRoomDoor = j;
+            }
+        }
+
+        if (template.getDoors().get(adjacentRoomDoor) == null) Gdx.app.error("MapManager", "Failed to find door for adjacent room"); // if the door is null, something went wrong
+        if (!template.getDoors().get(adjacentRoomDoor)) return generateRoomPos(template, rooms, rot); // if the room's door is disabled, try again
 
         for (RoomInstance ri : rooms) { // check if the position is already taken
             for (int h = 0; h < template.getHeight(); h++) { // check all the tiles that the room would occupy

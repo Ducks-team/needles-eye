@@ -37,7 +37,7 @@ public class Level {
 
         if (room.getRoom().getType() == RoomTemplate.RoomType.HALLWAY) { // add a placeholder to prevent generation in the second position of a hallway
             rooms.add(new HallwayPlaceholderRoom(MapManager.roundVector2(room.getRoomSpacePos().cpy().add(new Vector2(0,1).rotateDeg(room.getRot()))), room));
-            Gdx.app.debug("Level", "plink plonko added placeholder room at " + MapManager.roundVector2(room.getRoomSpacePos().cpy().add(new Vector2(0,1).rotateDeg(room.getRot()))) + " for " + room.getRoomSpacePos());
+            Gdx.app.debug("Level", "Added placeholder room at " + MapManager.roundVector2(room.getRoomSpacePos().cpy().add(new Vector2(0,1).rotateDeg(room.getRot()))) + " for " + room.getRoomSpacePos());
         }
 
         if (room.getRoom().getType() == RoomTemplate.RoomType.TREASURE) { // add an upgrade entity to any treasure rooms
